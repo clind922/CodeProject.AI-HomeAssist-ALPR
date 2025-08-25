@@ -98,7 +98,7 @@ DEFAULT_ROI = (
 URL_BASE_IMAGE         = "http://{ip}:{port}/v1/image"
 URL_ALPR               = "/alpr"
 
-EVENT_OBJECT_DETECTED = "codeproject_ai.object_detected"
+EVENT_LP_DETECTED = "codeproject_ai.lp_detected"
 BOX = "box"
 FILE = "file"
 OBJECT = "object"
@@ -297,7 +297,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             self._name = name
         else:
             camera_name = split_entity_id(camera_entity)[1]
-            self._name = "codeproject_ai_object_{}".format(camera_name)
+            self._name = "codeproject_ai_alpr_{}".format(camera_name)
 
         self._state = None
         self._objects = []  # The parsed raw data
@@ -415,7 +415,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             target_event_data[ATTR_ENTITY_ID] = self.entity_id
             if saved_image_path:
                 target_event_data[SAVED_FILE] = saved_image_path
-            self.hass.bus.fire(EVENT_OBJECT_DETECTED, target_event_data)
+            self.hass.bus.fire(EVENT_LP_DETECTED, target_event_data)
 
     @property
     def camera_entity(self):
