@@ -580,7 +580,7 @@ class CodeProjectAIALPR(CodeProjectAIImage):
 
     def alpr(self, image_bytes: bytes):
         """Process image_bytes and alpr."""
-        response = process_image(
+        response = cpai.process_image(
             url            = self._url_alpr,
             image_bytes    = image_bytes,
             min_confidence = self.min_confidence,
