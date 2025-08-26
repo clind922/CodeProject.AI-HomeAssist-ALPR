@@ -76,17 +76,19 @@ CONF_ROI_X_MIN = "roi_x_min"
 CONF_ROI_Y_MAX = "roi_y_max"
 CONF_ROI_X_MAX = "roi_x_max"
 CONF_SCALE = "scale"
+CONF_ROTATE_ANGLE = "rotate_angle"
 CONF_CUSTOM_MODEL = "custom_model"
 CONF_CROP_ROI = "crop_to_roi"
 
 DATETIME_FORMAT = "%Y-%m-%d_%H-%M-%S-%f"
-DEFAULT_TARGETS = [{CONF_TARGET: PERSON}]
+DEFAULT_TARGETS = []
 DEFAULT_TIMEOUT = 10
 DEFAULT_ROI_Y_MIN = 0.0
 DEFAULT_ROI_Y_MAX = 1.0
 DEFAULT_ROI_X_MIN = 0.0
 DEFAULT_ROI_X_MAX = 1.0
 DEAULT_SCALE = 1.0
+DEFAULT_ROTATE_ANGLE = 0
 DEFAULT_ROI = (
     DEFAULT_ROI_Y_MIN,
     DEFAULT_ROI_X_MIN,
@@ -136,6 +138,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_ROI_X_MAX, default=DEFAULT_ROI_X_MAX): cv.small_float,
         vol.Optional(CONF_SCALE, default=DEAULT_SCALE): vol.All(
             vol.Coerce(float, vol.Range(min=0.1, max=1))
+        ),
+        vol.Optional(CONF_ROTATE_ANGLE, default=DEFAULT_ROTATE_ANGLE): vol.All(
+            vol.Coerce(int, vol.Range(min=0, max=360))
         ),
         vol.Optional(CONF_SAVE_FILE_FOLDER): cv.isdir,
         vol.Optional(CONF_SAVE_FILE_FORMAT, default=JPG): vol.In([JPG, PNG]),
@@ -236,6 +241,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             roi_y_max=config[CONF_ROI_Y_MAX],
             roi_x_max=config[CONF_ROI_X_MAX],
             scale=config[CONF_SCALE],
+            rotate_angle=config[CONF_ROTATE_ANGLE],
             show_boxes=config[CONF_SHOW_BOXES],
             save_file_folder=save_file_folder,
             save_file_format=config[CONF_SAVE_FILE_FORMAT],
@@ -265,6 +271,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         roi_y_max,
         roi_x_max,
         scale,
+        rotate_angle,
         show_boxes,
         save_file_folder,
         save_file_format,
@@ -312,6 +319,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         }
         self._crop_roi = crop_roi
         self._scale = scale
+        self._rotate_angle = rotate_angle
         self._show_boxes = show_boxes
         self._image_width = None
         self._image_height = None
@@ -344,7 +352,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
                     f"Image cropped with : {self._roi_dict} W={self._image_width} H={self._image_height}"
                 )
             )
-        # resize image if different then default
+        # resize image if different than default
         if self._scale != DEAULT_SCALE:
             newsize = (self._image_width * self._scale, self._image_width * self._scale)
             self._image.thumbnail(newsize, Image.ANTIALIAS)
@@ -358,6 +366,17 @@ class ObjectClassifyEntity(ImageProcessingEntity):
                 )
             )
 
+        # rotate image if different than default
+        if self._rotate_angle != DEFAULT_ROTATE_ANGLE:
+            self._image.rotate(self._rotate_angle)
+            with io.BytesIO() as output:
+                self._image.save(output, format="JPEG")
+                image = output.getvalue()
+            _LOGGER.debug(
+                (
+                    f"Image rotated with : {self._rotate_angle}"
+                )
+            )
         self._state = None
         self._objects = []  # The parsed raw data
         self._targets_found = []
