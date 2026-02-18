@@ -137,10 +137,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_ROI_Y_MAX, default=DEFAULT_ROI_Y_MAX): cv.small_float,
         vol.Optional(CONF_ROI_X_MAX, default=DEFAULT_ROI_X_MAX): cv.small_float,
         vol.Optional(CONF_SCALE, default=DEAULT_SCALE): vol.All(
-            vol.Coerce(float, vol.Range(min=0.1, max=1))
+            vol.Coerce(float), vol.Range(min=0.1, max=1)
         ),
         vol.Optional(CONF_ROTATE_ANGLE, default=DEFAULT_ROTATE_ANGLE): vol.All(
-            vol.Coerce(int, vol.Range(min=0, max=360))
+            vol.Coerce(int), vol.Range(min=0, max=360)
         ),
         vol.Optional(CONF_SAVE_FILE_FOLDER): cv.isdir,
         vol.Optional(CONF_SAVE_FILE_FORMAT, default=JPG): vol.In([JPG, PNG]),
