@@ -108,6 +108,7 @@ SAVED_FILE = "saved_file"
 MIN_CONFIDENCE = 0.1
 JPG = "jpg"
 PNG = "png"
+FILE_FORMATS = ["jpg"]
 
 # rgb(red, green, blue)
 RED = (255, 0, 0)  # For objects within the ROI
@@ -345,7 +346,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             self._image = self._image.crop(roi)
             self._image_width, self._image_height = self._image.size
             with io.BytesIO() as output:
-                self._image.save(output)
+                self._image.save(output, format=self._save_file_format)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
@@ -358,7 +359,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             self._image.thumbnail(newsize, Image.ANTIALIAS)
             self._image_width, self._image_height = self._image.size
             with io.BytesIO() as output:
-                self._image.save(output)
+                self._image.save(output, format=self._save_file_format)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
@@ -370,7 +371,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         if self._rotate_angle != DEFAULT_ROTATE_ANGLE:
             self._image = self._image.rotate(self._rotate_angle)
             with io.BytesIO() as output:
-                self._image.save(output)
+                self._image.save(output, format=self._save_file_format)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
