@@ -345,7 +345,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             self._image = self._image.crop(roi)
             self._image_width, self._image_height = self._image.size
             with io.BytesIO() as output:
-                self._image.save(output, format="JPEG")
+                self._image.save(output)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
@@ -358,7 +358,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
             self._image.thumbnail(newsize, Image.ANTIALIAS)
             self._image_width, self._image_height = self._image.size
             with io.BytesIO() as output:
-                self._image.save(output, format="JPEG")
+                self._image.save(output)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
@@ -370,7 +370,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         if self._rotate_angle != DEFAULT_ROTATE_ANGLE:
             self._image = self._image.rotate(self._rotate_angle)
             with io.BytesIO() as output:
-                self._image.save(output, format="JPEG")
+                self._image.save(output)
                 image = output.getvalue()
             _LOGGER.debug(
                 (
