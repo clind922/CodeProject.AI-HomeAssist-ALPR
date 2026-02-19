@@ -368,7 +368,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
 
         # rotate image if different than default
         if self._rotate_angle != DEFAULT_ROTATE_ANGLE:
-            self._image.rotate(self._rotate_angle)
+            self._image = self._image.rotate(self._rotate_angle)
             with io.BytesIO() as output:
                 self._image.save(output, format="JPEG")
                 image = output.getvalue()
