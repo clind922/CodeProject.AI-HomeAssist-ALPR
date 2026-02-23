@@ -77,6 +77,7 @@ CONF_ROI_Y_MAX = "roi_y_max"
 CONF_ROI_X_MAX = "roi_x_max"
 CONF_SCALE = "scale"
 CONF_ROTATE_ANGLE = "rotate_angle"
+CONF_SKEW_FACTOR_X = "skew_factor_x"
 CONF_CUSTOM_MODEL = "custom_model"
 CONF_CROP_ROI = "crop_to_roi"
 
@@ -88,6 +89,7 @@ DEFAULT_ROI_Y_MAX = 1.0
 DEFAULT_ROI_X_MIN = 0.0
 DEFAULT_ROI_X_MAX = 1.0
 DEAULT_SCALE = 1.0
+DEFAULT_SKEW_X = 0.0
 DEFAULT_ROTATE_ANGLE = 0
 DEFAULT_ROI = (
     DEFAULT_ROI_Y_MIN,
@@ -142,6 +144,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         ),
         vol.Optional(CONF_ROTATE_ANGLE, default=DEFAULT_ROTATE_ANGLE): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=360)
+        ),
+
+        vol.Optional(CONF_SKEW_FACTOR_X, default=DEFAULT_SKEW_X): vol.All(
+            vol.Coerce(float), vol.Range(min=0.1, max=1)
         ),
         vol.Optional(CONF_SAVE_FILE_FOLDER): cv.isdir,
         vol.Optional(CONF_SAVE_FILE_FORMAT, default=JPG): vol.In([JPG, PNG]),
@@ -243,6 +249,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             roi_x_max=config[CONF_ROI_X_MAX],
             scale=config[CONF_SCALE],
             rotate_angle=config[CONF_ROTATE_ANGLE],
+            skew_factor_x=config[CONF_SKEW_FACTOR_X],
             show_boxes=config[CONF_SHOW_BOXES],
             save_file_folder=save_file_folder,
             save_file_format=config[CONF_SAVE_FILE_FORMAT],
@@ -273,6 +280,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         roi_x_max,
         scale,
         rotate_angle,
+        skew_factor_x,
         show_boxes,
         save_file_folder,
         save_file_format,
@@ -321,6 +329,7 @@ class ObjectClassifyEntity(ImageProcessingEntity):
         self._crop_roi = crop_roi
         self._scale = scale
         self._rotate_angle = rotate_angle
+        self._skew_factor_x = skew_factor_x
         self._show_boxes = show_boxes
         self._image_width = None
         self._image_height = None
@@ -378,6 +387,24 @@ class ObjectClassifyEntity(ImageProcessingEntity):
                     f"Image rotated with : {self._rotate_angle}"
                 )
             )
+
+        # skew image horizontally, if different than default
+        if self._skew_factor_x != DEFAULT_SKEW_X:
+            self._image_width = int(self._image_width + abs(self._skew_factor_x) * self._image_height)
+            if self._skew_factor_x > 0:
+               self._image = self._image.transform((self._image_width, self._image_height), Image.AFFINE, (1, self._skew_factor_x, -self._skew_factor_x * self._image_height, 0, 1, 0))
+            else:
+               self._image = self._image.transform((self._image_width, self._image_height), Image.AFFINE, (1, self._skew_factor_x, 0, 0, 1, 0))
+
+            with io.BytesIO() as output:
+                self._image.save(output, format=self._save_file_format)
+                image = output.getvalue()
+            _LOGGER.debug(
+                (
+                    f"Image skewed horizontally with : {self._skew_factor_x}"
+                )
+            )
+            
         self._state = None
         self._objects = []  # The parsed raw data
         self._targets_found = []
